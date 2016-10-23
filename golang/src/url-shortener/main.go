@@ -6,10 +6,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fatih/color"        // beautiful color :D
-	"github.com/gorilla/mux"        // router
-	_ "github.com/mattn/go-sqlite3" // sqlite3
-	"github.com/namsral/flag"       // allow environment variable in flags
+	"github.com/fatih/color"  // beautiful color :D
+	"github.com/gorilla/mux"  // router
+	_ "github.com/lib/pq"     // pg
+	"github.com/namsral/flag" // allow environment variable in flags
 )
 
 type Services struct {
@@ -24,12 +24,19 @@ func checkError(err error) {
 
 func main() {
 
-	var dbFile = flag.String("database", "url.db", "database file")
+	var dbPort = flag.Int("dbport", 5432, "database port")
+	var dbHost = flag.String("dbstring", "localhost", "database host")
+	var dbUser = flag.String("dbuser", "user", "database user")
+	var dbPassword = flag.String("dbpassword", "password", "database password")
+	var dbName = flag.String("dbname", "url", "database name")
+
 	var port = flag.Int("port", 9999, "port to run the server on")
 	flag.Parse()
 
 	// set up the various services
-	db, err := sql.Open("sqlite3", *dbFile)
+	db, err := sql.Open("postgres",
+		fmt.Sprintf("user=%v dbname=%v password=%v port=%v host=%v sslmode=disable",
+			*dbUser, *dbName, *dbPassword, *dbPort, *dbHost))
 	checkError(err)
 	defer db.Close()
 

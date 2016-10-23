@@ -17,7 +17,7 @@ func (self *DatabaseWrapper) UpdateUrl(url Url) (*Url, error) {
 	fmt.Println(err)
 
 	if existingUrl == nil {
-		stmt, err := self.DB.Prepare("INSERT INTO url(id, url) values (?, ?)")
+		stmt, err := self.DB.Prepare("INSERT INTO url(id, url) values ($1, $2)")
 		if err != nil {
 			return nil, err
 		}
@@ -27,7 +27,7 @@ func (self *DatabaseWrapper) UpdateUrl(url Url) (*Url, error) {
 			return nil, err
 		}
 	} else {
-		stmt, err := self.DB.Prepare("UPDATE url SET url = ? WHERE id = ?")
+		stmt, err := self.DB.Prepare("UPDATE url SET url = $1 WHERE id = $2")
 		if err != nil {
 			return nil, err
 		}
@@ -41,7 +41,7 @@ func (self *DatabaseWrapper) UpdateUrl(url Url) (*Url, error) {
 }
 
 func (self *DatabaseWrapper) GetURLById(urlId string) (*Url, error) {
-	stmt, err := self.DB.Prepare("SELECT id, url FROM url WHERE id=?")
+	stmt, err := self.DB.Prepare("SELECT id, url FROM url WHERE id=$1")
 	if err != nil {
 		panic(err)
 		//return nil, err
