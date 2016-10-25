@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/renstrom/shortuuid"
@@ -17,8 +18,10 @@ func checkError(err error) {
 }
 
 type Book struct {
-	Id    uuid.UUID
-	Title string
+	Id        uuid.UUID
+	Title     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func main() {
@@ -36,7 +39,10 @@ func main() {
 	checkError(err)
 	defer db.Close()
 
-	stmt, err := db.Prepare("INSERT INTO books(id, title) values ( gen_random_uuid(), $1)")
+	stmt, err := db.Prepare("DELETE FROM books")
+	_, err = stmt.Exec()
+	checkError(err)
+	stmt, err = db.Prepare("INSERT INTO books(id, title, created_at, updated_at) values ( gen_random_uuid(), $1, now(), now())")
 	checkError(err)
 
 	_, err = stmt.Exec("Introduction to Go")
@@ -45,19 +51,20 @@ func main() {
 	checkError(err)
 	defer stmt.Close()
 
-	stmt, err = db.Prepare("SELECT id, title FROM books")
+	stmt, err = db.Prepare("SELECT id, title, created_at, updated_at FROM books")
 	checkError(err)
 	result, err := stmt.Query()
 	checkError(err)
 	for result.Next() {
 		var book Book
 		var idstring string
-		result.Scan(&idstring, &book.Title)
+		result.Scan(&idstring, &book.Title, &book.CreatedAt, &book.UpdatedAt)
 		u2, err := uuid.FromString(idstring)
 		checkError(err)
 		book.Id = u2
 		short := shortuuid.DefaultEncoder.Encode(book.Id)
 		longagain, _ := shortuuid.DefaultEncoder.Decode(short)
 		fmt.Printf("UUID: %v, Shortuuid: %v, Long again %v, Title: %v\n", book.Id, short, longagain, book.Title)
+		fmt.Println(book.CreatedAt.UnixNano(), "                  ", book.UpdatedAt.UnixNano())
 	}
 }

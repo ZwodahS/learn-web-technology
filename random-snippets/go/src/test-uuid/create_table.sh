@@ -23,4 +23,4 @@ set +x
 psql -c "DROP DATABASE IF EXISTS test_uuid"
 psql -c "CREATE DATABASE test_uuid"
 psql -d "test_uuid" -c "CREATE EXTENSION pgcrypto"
-psql -d "test_uuid" -c "CREATE TABLE books (id uuid primary key, title varchar(50))"
+psql -d "test_uuid" -c "CREATE TABLE books (id uuid primary key, title varchar(50), created_at timestamp, updated_at timestamp)"
