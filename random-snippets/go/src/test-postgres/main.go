@@ -57,7 +57,9 @@ func main() {
 	checkError(err)
 	for result.Next() {
 		var book Book
-		result.Scan(&book.Id, &book.Title, &book.CreatedAt, &book.UpdatedAt)
+		if err := result.Scan(&book.Id, &book.Title, &book.CreatedAt, &book.UpdatedAt); err != nil {
+			panic(err)
+		}
 		short := shortuuid.DefaultEncoder.Encode(book.Id)
 		longagain, _ := shortuuid.DefaultEncoder.Decode(short)
 		fmt.Printf("UUID: %v, Shortuuid: %v, Long again %v, Title: %v\n", book.Id, short, longagain, book.Title)
