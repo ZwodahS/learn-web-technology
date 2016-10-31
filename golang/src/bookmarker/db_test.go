@@ -6,6 +6,7 @@ import (
 
 	"github.com/namsral/flag"
 	uuid "github.com/satori/go.uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func NewDBFromEnvVar(t *testing.T) *PostgresDatabase {
@@ -54,18 +55,13 @@ func TestCreateUser(t *testing.T) {
 	PanicIfError(err)
 
 	var createdUser User
-	var idString string
-	err = db.DB.QueryRow("SELECT id, username, email, created_at, updated_at FROM users WHERE id = $1", uuid.UUID(user.Id).String()).Scan(
-		&idString, &createdUser.Username, &createdUser.Email, &createdUser.CreatedAt, &createdUser.UpdatedAt)
+	stmt, err := db.DB.Prepare("SELECT id, username, email, created_at, updated_at FROM users WHERE id = $1")
+	result, err := stmt.Query(uuid.UUID(user.Id).String())
+	assert.True(t, result.Next())
+	result.Scan(&createdUser.Id, &createdUser.Username, &createdUser.Email, &createdUser.CreatedAt, &createdUser.UpdatedAt)
 	PanicIfError(err)
 
-	u, err := uuid.FromString(idString)
-	PanicIfError(err)
-
-	createdUser.Id = ShortUUID(u)
-	if createdUser.Id != user.Id {
-		t.Error("Created User id and DB user id is different")
-	}
+	assert.Equal(t, createdUser, user)
 
 	Teardown(db.DB, t)
 }

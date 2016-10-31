@@ -124,15 +124,10 @@ func (db PostgresDatabase) SaveUser(user User, upsert bool) (User, error) {
 		if err != nil {
 			return User{}, err
 		}
-		var idString string
-		err = stmt.QueryRow(user.Username, user.Email).Scan(&idString, &user.CreatedAt, &user.UpdatedAt)
+		err = stmt.QueryRow(user.Username, user.Email).Scan(&user.Id, &user.CreatedAt, &user.UpdatedAt)
 		if err != nil {
 			return User{}, err
 		}
-		u, err := uuid.FromString(idString)
-		// this should never happen, when it do, please just panic
-		PanicIfError(err)
-		user.Id = ShortUUID(u)
 		return user, nil
 	} else {
 		stmt, err := db.DB.Prepare("UPDATE TABLE users SET email = $1, updated_at = now() WHERE id = $2 RETURNING updated_at")
